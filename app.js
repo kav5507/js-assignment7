@@ -1,7 +1,20 @@
 
 const express = require('express')
-const app = express()
 
+
+const { MongoClient, ObjectId } = require('mongodb')
+
+const url = process.env.MONGODB_URL || require('./secrets/mongodb.json').url
+const client = new MongoClient(url)
+
+const getCollection = async (dbName, collectionName) => {
+    await client.connect();
+    return client.db(dbName).collection(collectionName);
+};
+
+module.exports = { getCollection, ObjectId }
+
+const app = express()
 const port = process.env.PORT || 3000
 
 app.use(express.json())
@@ -16,40 +29,6 @@ const todos = [
 app.get('/', (_, response) => {
 	response.sendFile('index.html', { root })
 })
-
-
-
-// GET /api/todos
-
-app.get ('/api/todos', (request, response) => {
-	response.json(todos);
-}
-)
-
-
-// POST /api/todos
-app.post('/api/todos', (request,response) => {
-	console.log(request)
-	const { item } = request.body
-	const id = todos.length + 1;
-	const complete = false;
-	todos.push ({ id, item, complete})
-	response.json({ id })
-})
-
-
-
-// PUT /api/todos/:id
-app.put('/api/todos/:id', (request,response,) => {
-	const { id } = request.params
-	const task = todos.find(todo => todo.id.toString() === id)
-	task.complete = !task.complete 
-	response.json({ id , complete: task.complete})
-
-})
-
-
-
 
 
 const message = `Server running: http://localhost:${port}`
